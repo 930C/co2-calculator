@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 )
 
 var transportationMethods = map[string]float64{
@@ -30,33 +31,43 @@ var (
 )
 
 func main() {
-
 	flag.Parse()
 
-	co2 := calculateCO2(transportationMethod, distanceUnit, distance)
+	co2, err := calculateCO2(transportationMethod, distanceUnit, distance)
 
-	if co2 >= 1000 {
-		*outputUnit = "kg"
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	var formattedString string
-	if *outputUnit == "kg" {
-		formattedString = fmt.Sprintf("Your trip caused %.1f%s of CO2-equivalent.", co2/1000, *outputUnit)
-	} else {
-		formattedString = fmt.Sprintf("Your trip caused %.0f%s of CO2-equivalent.", co2, *outputUnit)
-	}
+	formattedString := formatOutput(co2, *outputUnit)
 
 	fmt.Println(formattedString)
 }
 
-func calculateCO2(transportationMethod, distanceUnit *string, distance *float64) float64 {
+func calculateCO2(transportationMethod, distanceUnit *string, distance *float64) (float64, error) {
 	// Get emission rate of transportation method
-	emissionRate := transportationMethods[*transportationMethod]
+	emissionRate, ok := transportationMethods[*transportationMethod]
+
+	if !ok {
+		return 0, fmt.Errorf("error 404: methode %s wurde nicht gefunden", *transportationMethod)
+	}
 
 	if *distanceUnit == "m" {
 		*distance /= 1000
 	}
 
 	// calculate co2
-	return *distance * emissionRate
+	return *distance * emissionRate, nil
+}
+
+func formatOutput(co2 float64, unit string) string {
+	if co2 >= 1000 {
+		*outputUnit = "kg"
+	}
+
+	if *outputUnit == "kg" {
+		return fmt.Sprintf("Your trip caused %.1f%s of CO2-equivalent.", co2/1000, *outputUnit)
+	} else {
+		return fmt.Sprintf("Your trip caused %.0f%s of CO2-equivalent.", co2, *outputUnit)
+	}
 }
