@@ -35,3 +35,27 @@ func TestCalculateCO2(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatOutput(t *testing.T) {
+	cases := []struct {
+		name           string
+		co2            float64
+		unit           string
+		expectedString string
+	}{
+		{
+			name:           "Large Petrol Car 1800.5 km",
+			co2:            507700,
+			unit:           "kg",
+			expectedString: "Your trip caused 507.7kg of CO2-equivalent.",
+		},
+	}
+
+	for _, tc := range cases {
+		outputString := formatOutput(tc.co2, tc.unit)
+
+		if outputString != tc.expectedString {
+			t.Errorf("error: expected string '%s' but got string '%s'", tc.expectedString, outputString)
+		}
+	}
+}
