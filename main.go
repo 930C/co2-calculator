@@ -22,25 +22,18 @@ var transportationMethods = map[string]float64{
 	"train":                    6,
 }
 
+var (
+	transportationMethod = flag.String("transportation-method", "", "Transporation Method")
+	distance             = flag.Float64("distance", 0, "Distance")
+	distanceUnit         = flag.String("unit-of-distance", "km", "Defines the unit of the distance (km or m)")
+	outputUnit           = flag.String("output", "g", "Output unit (g or kg)")
+)
+
 func main() {
-	var (
-		transportationMethod = flag.String("transportation-method", "", "Transporation Method")
-		distance             = flag.Float64("distance", 0, "Distance")
-		distanceUnit         = flag.String("unit-of-distance", "km", "Defines the unit of the distance (km or m)")
-		outputUnit           = flag.String("output", "g", "Output unit (g or kg)")
-	)
 
 	flag.Parse()
 
-	// Get emission rate of transportation method
-	emission := transportationMethods[*transportationMethod]
-
-	if *distanceUnit == "m" {
-		*distance /= 1000
-	}
-
-	// calculate co2
-	co2 := *distance * emission
+	co2 := calculateCO2(transportationMethod, distanceUnit, distance)
 
 	if co2 >= 1000 {
 		*outputUnit = "kg"
@@ -54,4 +47,16 @@ func main() {
 	}
 
 	fmt.Println(formattedString)
+}
+
+func calculateCO2(transportationMethod, distanceUnit *string, distance *float64) float64 {
+	// Get emission rate of transportation method
+	emissionRate := transportationMethods[*transportationMethod]
+
+	if *distanceUnit == "m" {
+		*distance /= 1000
+	}
+
+	// calculate co2
+	return *distance * emissionRate
 }
